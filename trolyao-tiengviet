@@ -1,0 +1,75 @@
+import speech_recognition as sr
+from gtts import gTTS
+from playsound import playsound
+import os
+import datetime
+import webbrowser
+import pyjokes
+import requests
+import json
+
+# Hàm ghi âm giọng nói từ microphone
+def get_audio():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Robot: I'm Listening")
+        audio = r.listen(source)
+        try:
+            text = r.recognize_google(audio, language='vi-VN').lower()
+            print("You: " + text)
+            return text
+        except:
+            return ""
+
+# Hàm chuyển văn bản thành giọng nói và phát ra âm thanh
+def speak(audio_string):
+    tts = gTTS(text=audio_string, lang='vi')
+    filename = "audio.mp3"
+    tts.save(filename)
+    playsound(filename)
+    os.remove(filename)
+
+# Hàm trả lời câu hỏi của người dùng
+def chat(text):
+    if 'xin chào' in text:
+        speak("Chào bạn")
+    elif 'ngày' in text:
+        today = datetime.date.today()
+        speak(today.strftime("Hôm nay là %d/%m/%Y"))
+    elif 'giờ' in text:
+        now = datetime.datetime.now()
+        speak(now.strftime("Bây giờ là %H:%M"))
+    elif 'mở google và tìm kiếm' in text:
+        search = text.split("kiếm", 1)[1]
+        url = f"https://www.google.com/search?q={search}"
+        webbrowser.get().open(url)
+        speak(f"Đây là kết quả tìm kiếm cho {search} trên Google")
+    elif 'chiste' in text:
+        joke = pyjokes.get_joke('es')
+        speak(joke)
+    elif 'thời tiết' in text:
+        api_key = "API_KEY"
+        base_url = "http://api.openweathermap.org/data/2.5/weather?"
+        speak("Bạn muốn xem thời tiết ở đâu?")
+        city_name = get_audio()
+        complete_url = base_url + "appid=" + api_key + "&q=" + city_name
+        response = requests.get(complete_url)
+        data = json.loads(response.text)
+        if data["cod"] != "404":
+            weather = data["weather"][0]["description"]
+            temperature = int(data["main"]["temp"] - 273.15)
+            speak(f"Thời tiết ở {city_name} là {weather} và nhiệt độ là {temperature} độ C.")
+        else:
+            speak("Không tìm thấy địa điểm này.")
+    elif 'tạm biệt' in text:
+        speak("Tạm biệt bạn nhé, hẹn gặp lại sau.")
+        exit()
+
+# Hàm chính để thực thi trợ lý ảo
+def main():
+    while True:
+        text = get_audio()
+        chat(text)
+
+if __name__ == '__main__':
+    main()
