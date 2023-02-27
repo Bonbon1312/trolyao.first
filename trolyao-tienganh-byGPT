@@ -1,0 +1,49 @@
+import speech_recognition as sr
+import pyttsx3
+
+def speak(text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
+def get_audio():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Robot: I'm Listening")
+        r.pause_threshold = 1
+        r.adjust_for_ambient_noise(source, duration=1)
+        try:
+            audio = r.listen(source)
+            text = r.recognize_google(audio)
+            print("You:", text)
+        except sr.UnknownValueError:
+            print("Robot: Sorry, I did not hear that. Please try again.")
+            text = ""
+        except sr.RequestError:
+            print("Robot: Sorry, my speech service is down right now. Please try again later.")
+            text = ""
+        return text
+
+def assistant(text):
+    if "hello" in text:
+        robot_brain = "Hello! How can I help you?"
+    elif "how are you" in text:
+        robot_brain = "I'm fine, thank you. How are you?"
+    elif "what is your name" in text:
+        robot_brain = "My name is Virtual Assistant"
+    elif "goodbye" in text:
+        robot_brain = "Goodbye! Have a nice day."
+    else:
+        robot_brain = "Sorry, I did not understand that."
+    return robot_brain
+
+def main():
+    while True:
+        text = get_audio().lower()
+        robot_brain = assistant(text)
+        speak(robot_brain)
+        if "goodbye" in text:
+            break
+
+if __name__ == "__main__":
+    main()
