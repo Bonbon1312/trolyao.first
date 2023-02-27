@@ -1,90 +1,115 @@
-import tkinter as tk
 from tkinter import *
+import openai
 
-root = tk.Tk()
-root.title("Chatbot")
+openai.api_key = "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"
 
-# Tạo một frame để chứa chat history
-chat_history = tk.Frame(root)
-chat_history.pack(padx=10, pady=10)
+def get_gpt3_answer(prompt):
+    response = openai.Completion.create(
+        engine="davinci",
+        prompt=prompt,
+        temperature=0.5,
+        max_tokens=1024,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
+    )
+    return response.choices[0].text.strip()
 
-# Tạo một scrollbar cho chat history
-scrollbar = tk.Scrollbar(chat_history)
-scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+def send_message():
+    user_input = input_field.get()
+    chat_log.config(state=NORMAL)
+    chat_log.insert(END, "You: " + user_input + "\n\n")
+    chat_log.config(foreground="#442265", font=("Verdana", 12))
+    response = openai.Completion.create(
+        engine="text-davinci-002",
+        prompt=(f"{user_input}\nAI: "),
+        temperature=0.5,
+        max_tokens=150,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
+    )
+    message = response.choices[0].text
+    chat_log.insert(END, "AI: " + message + "\n\n")
+    chat_log.config(state=DISABLED)
+    input_field.delete(0, END)
 
-# Tạo một Text widget để hiển thị chat history
-chat_history_text = tk.Text(chat_history, yscrollcommand=scrollbar.set)
-chat_history_text.pack(side=tk.LEFT, fill=tk.BOTH)
-scrollbar.config(command=chat_history_text.yview)
 
-# Tạo một frame để chứa input và send button
-input_frame = tk.Frame(root)
-input_frame.pack(padx=10, pady=10)
+def enter_pressed(event):
+    send_message()
 
-# Tạo một Text widget để nhập input
-input_text = tk.Text(input_frame, height=3)
-input_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-# Tạo một button để gửi input
-send_button = tk.Button(input_frame, text="Send")
-send_button.pack(side=tk.RIGHT)
-
-root.mainloop()
-def send_message(event):
-    # Lấy input từ input_text widget
-    input_message = input_text.get("1.0", "end-1c").strip()
-
-    # Hiển thị input trong chat history
-    chat_history_text.insert(tk.END, "You: " + input_message + "\n")
-
-    # Gửi input đến trợ lý ảo và lấy câu trả lời
-    bot_response = response(input_message)
-
-    # Hiển thị câu trả lời trong chat history
-    chat_history_text.insert(tk.END, "Bot: " + bot_response + "\n")
-
-    # Xóa input_text widget
-    input_text.delete("1.0", tk.END)
-
-# Thiết lập sự kiện cho send button
-send_button.bind("<Button-1>", send_message)
-
-# Thiết lập sự kiện cho input_text widget
-input_text.bind("<Return>", send_message)
-
-def send_message(event=None):
-    # Lấy nội dung tin nhắn từ Entry
-    message = entry.get()
-
-    # Xóa nội dung trong Entry
-    entry.delete(0, END)
-
-    # Hiển thị tin nhắn trong khung chat
-    chat_box.insert(END, "You: " + message + "\n")
-
-    # Gửi tin nhắn cho trợ lý ảo
-    response = get_bot_response(message)
-
-    # Hiển thị phản hồi từ trợ lý ảo trong khung chat
-    chat_box.insert(END, "Bot: " + response + "\n")
-
-# Tạo cửa sổ giao diện
-root = Tk()
+# Tạo giao diện trợ lý ảo
+base = Tk()
+base.title("AI Assistant")
+base.geometry("400x500")
+base.resizable(width=FALSE, height=FALSE)
 
 # Tạo khung chat
-chat_box = Text(root)
-chat_box.pack()
+chat_log = Text(base, bd=0, bg="#E9FFFF", height="8", width="50", font="Arial",)
+chat_log.config(state=DISABLED)
 
-# Tạo Entry để nhập tin nhắn
-entry = Entry(root)
-entry.pack()
+# Tạo thanh cuộn cho khung chat
+scrollbar = Scrollbar(base, command=chat_log.yview, cursor="heart")
+chat_log['yscrollcommand'] = scrollbar.set
 
-# Gán hàm send_message vào sự kiện khi ấn phím Enter
-entry.bind("<Return>", send_message)
+# Tạo khung nhập liệu
+input_field = Entry(base, bg="#E9FFFF", font="Arial",)
 
-# Tạo nút Send để gửi tin nhắn
-send_button = Button(root, text="Send", command=send_message)
-send_button.pack()
+# Bắt sự kiện nhấn enter
+input_field.bind("<Return>", enter_pressed)
 
-# Khởi chạy cửa sổ giao diện
+# Tạo nút gửi tin nhắn
+send_button = Button(
+    base, text="Send", command=send_message
+)
+
+# Hiển thị các phần tử lên màn hình
+scrollbar.place(x=376, y=6, height=386)
+chat_log.place(x=6, y=6, height=386, width=370)
+input_field.place(x=6, y=401, height=90, width=265)
+send_button.place(x=276, y=401, height=90, width=120)
+
+base.mainloop()
+from tkinter import *
+from chatbot import Chatbot
+
+bot = Chatbot()
+
+def send_message(event=None):
+    message = message_box.get()
+    if message.strip() == '':
+        return
+    chat_log.config(state=NORMAL)
+    chat_log.insert(END, "You: " + message + '\n\n')
+    message_box.delete(0, END)
+    response = bot.get_response(message)
+    chat_log.insert(END, "Bot: " + str(response) + '\n\n')
+    chat_log.config(state=DISABLED)
+    chat_log.yview(END)
+
+root = Tk()
+root.title("Tro ly ao")
+root.geometry("400x500")
+
+chat_log = Text(root, bd=0, bg="white", height="8", width="50", font="Arial",)
+
+scrollbar = Scrollbar(root, command=chat_log.yview)
+
+chat_log['yscrollcommand'] = scrollbar.set
+
+input_frame = Frame(root, width=300, height=50, bg="white")
+
+message_box = Entry(input_frame, bd=0, bg="white", font="Arial")
+message_box.bind("<Return>", send_message)
+send_button = Button(input_frame, text="Send", command=send_message)
+
+chat_log.config(state=DISABLED)
+
+scrollbar.place(x=376,y=6, height=386)
+chat_log.place(x=6,y=6, height=386, width=370)
+input_frame.place(x=6, y=401, height=90, width=370)
+message_box.place(x=10, y=5, height=50, width=270)
+send_button.place(x=290, y=5, height=50, width=70)
+
 root.mainloop()
