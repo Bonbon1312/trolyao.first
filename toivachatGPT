@@ -1,0 +1,66 @@
+import tkinter as tk
+import pyttsx3
+import speech_recognition as sr
+from time import ctime
+import time
+import os
+from tkinter import *
+from tkinter.ttk import *
+from tkinter import messagebox
+import threading
+
+# Tạo cửa sổ giao diện
+root = tk.Tk()
+root.geometry("600x600")
+root.configure(bg="#F5F5F5")
+root.title("Trợ lý ảo")
+
+# Tạo khung chat
+chatBox = tk.Listbox(root, bd=0, bg="#F5F5F5", height="8", width="50", font="Arial", fg="#8B8B8B")
+chatBox.place(x=75, y=100, height=385, width=500)
+
+# Tạo thanh cuộn cho khung chat
+scrollbar = tk.Scrollbar(root, command=chatBox.yview)
+scrollbar.place(x=575, y=100, height=385)
+
+# Thêm thanh cuộn vào khung chat
+chatBox.configure(yscrollcommand=scrollbar.set)
+
+# Tạo khung văn bản để nhập lệnh
+entryBox = tk.Text(root, bd=0, bg="white", width="29", height="5", font="Arial", fg="#8B8B8B")
+entryBox.place(x=128, y=515, height=50, width=405)
+
+# Tạo nút gửi để gửi lệnh
+sendButton = tk.Button(root, font=("Verdana", 12, 'bold'), text="Gửi", width="6", height=1,
+                       bd=0, bg="#32de97", activebackground="#3c9d9b", fg='#ffffff',
+                       command=send)
+sendButton.place(x=530, y=515, height=50)
+
+# Tạo nút bật/tắt trợ lý ảo
+toggleButton = tk.Button(root, font=("Verdana", 12, 'bold'), text="Tắt", width="6", height=1,
+                         bd=0, bg="#c3c3c3", activebackground="#c3c3c3", fg='#ffffff',
+                         command=toggle)
+toggleButton.place(x=25, y=515, height=50)
+
+# Hàm tắt/mở trợ lý ảo
+def toggle():
+    global enable, toggleButton
+    if enable:
+        enable = False
+        toggleButton.config(text="Mở", bg="#32de97", activebackground="#3c9d9b")
+    else:
+        enable = True
+        toggleButton.config(text="Tắt", bg="#c3c3c3", activebackground="#c3c3c3")
+
+# Hàm gửi lệnh từ khung văn bản
+def send():
+    query = entryBox.get("1.0", 'end-1c').lower()
+    chatBox.insert(END, "Bạn: " + query)
+
+    if 'mở youtube' in query:
+        os.startfile("https://www.youtube.com")
+        chatBox.insert(END, "Trợ lý ảo: Đang mở Youtube...")
+    elif 'mở google' in query:
+        os.startfile("https://www.google.com")
+        chatBox.insert(END, "Trợ lý ảo: Đang mở Google...")
+    elif 'mở
